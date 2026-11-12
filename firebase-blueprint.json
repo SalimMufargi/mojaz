@@ -1,0 +1,184 @@
+{
+  "entities": {
+    "Staff": {
+      "title": "Staff Member",
+      "description": "Educational evaluation specialist or department head authorized in the Mojaz system.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 150
+        },
+        "dept": {
+          "type": "string",
+          "enum": [
+            "قسم تقويم تعلم مواد العلوم التطبيقية",
+            "قسم تقويم تعلم مواد العلوم الإنسانية والمهارات الفردية"
+          ],
+          "maxLength": 150
+        },
+        "role": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 150
+        },
+        "specialty": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "targetVisits": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "name", "dept", "role", "specialty", "targetVisits"]
+    },
+    "Visit": {
+      "title": "Field Visit Record",
+      "description": "Supervisory or evaluation field visit conducted by a specialist at a school.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "specialistId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "specialist": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 150
+        },
+        "dept": {
+          "type": "string",
+          "enum": [
+            "قسم تقويم تعلم مواد العلوم التطبيقية",
+            "قسم تقويم تعلم مواد العلوم الإنسانية والمهارات الفردية"
+          ],
+          "maxLength": 150
+        },
+        "specialty": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "school": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 150
+        },
+        "wilayat": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "teacher": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 150
+        },
+        "visitType": {
+          "type": "string",
+          "enum": [
+            "زيارة إشرافية صفية",
+            "تدقيق تقويم مستمر",
+            "متابعة خطة علاجية",
+            "اعتماد أدوات تقويم",
+            "ورشة فنية ميدانية"
+          ],
+          "maxLength": 100
+        },
+        "gradeLevel": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "date": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "status": {
+          "type": "string",
+          "enum": ["مستقرة", "عاجلة", "قيد المتابعة"],
+          "maxLength": 40
+        },
+        "domainPlanning": {
+          "type": "number"
+        },
+        "domainTools": {
+          "type": "number"
+        },
+        "domainFeedback": {
+          "type": "number"
+        },
+        "domainAchievement": {
+          "type": "number"
+        },
+        "overallScore": {
+          "type": "number"
+        },
+        "strengths": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 1500
+        },
+        "followUpDate": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "followUpOutcome": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      },
+      "required": [
+        "id",
+        "specialistId",
+        "specialist",
+        "dept",
+        "specialty",
+        "school",
+        "wilayat",
+        "teacher",
+        "visitType",
+        "gradeLevel",
+        "date",
+        "status",
+        "domainPlanning",
+        "domainTools",
+        "domainFeedback",
+        "domainAchievement",
+        "overallScore",
+        "strengths",
+        "notes"
+      ]
+    }
+  },
+  "firestore": {
+    "/staff/{staffId}": {
+      "schema": { "$ref": "#/entities/Staff" },
+      "description": "Collection of authorized evaluation specialists and department heads."
+    },
+    "/visits/{visitId}": {
+      "schema": { "$ref": "#/entities/Visit" },
+      "description": "Collection of field visits, rubric scores, and recommendations."
+    }
+  }
+}

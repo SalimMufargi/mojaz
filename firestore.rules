@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidDept(dept) {
+      return dept is string && (
+        dept == 'قسم تقويم تعلم مواد العلوم التطبيقية' ||
+        dept == 'قسم تقويم تعلم مواد العلوم الإنسانية والمهارات الفردية'
+      );
+    }
+
+    function isValidStaff(data) {
+      return data.keys().hasAll(['id', 'name', 'dept', 'role', 'specialty', 'targetVisits']) &&
+        data.keys().hasOnly(['id', 'name', 'dept', 'role', 'specialty', 'targetVisits']) &&
+        isValidId(data.id) &&
+        data.name is string && data.name.size() >= 2 && data.name.size() <= 150 &&
+        isValidDept(data.dept) &&
+        data.role is string && data.role.size() >= 2 && data.role.size() <= 150 &&
+        data.specialty is string && data.specialty.size() >= 1 && data.specialty.size() <= 100 &&
+        data.targetVisits is number && data.targetVisits >= 1 && data.targetVisits <= 200;
+    }
+
+    function isValidDomainScore(score) {
+      return score is number && score >= 1 && score <= 5;
+    }
+
+    function isValidVisit(data) {
+      return data.keys().hasAll([
+          'id', 'specialistId', 'specialist', 'dept', 'specialty',
+          'school', 'wilayat', 'teacher', 'visitType', 'gradeLevel',
+          'date', 'status', 'domainPlanning', 'domainTools',
+          'domainFeedback', 'domainAchievement', 'overallScore',
+          'strengths', 'notes', 'followUpDate', 'followUpOutcome'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'specialistId', 'specialist', 'dept', 'specialty',
+          'school', 'wilayat', 'teacher', 'visitType', 'gradeLevel',
+          'date', 'status', 'domainPlanning', 'domainTools',
+          'domainFeedback', 'domainAchievement', 'overallScore',
+          'strengths', 'notes', 'followUpDate', 'followUpOutcome'
+        ]) &&
+        isValidId(data.id) &&
+        data.specialistId is string && data.specialistId.size() >= 1 && data.specialistId.size() <= 64 &&
+        data.specialist is string && data.specialist.size() >= 2 && data.specialist.size() <= 150 &&
+        isValidDept(data.dept) &&
+        data.specialty is string && data.specialty.size() >= 1 && data.specialty.size() <= 100 &&
+        data.school is string && data.school.size() >= 2 && data.school.size() <= 150 &&
+        data.wilayat is string && data.wilayat.size() >= 2 && data.wilayat.size() <= 80 &&
+        data.teacher is string && data.teacher.size() >= 2 && data.teacher.size() <= 150 &&
+        data.visitType is string && data.visitType.size() >= 2 && data.visitType.size() <= 100 &&
+        data.gradeLevel is string && data.gradeLevel.size() >= 1 && data.gradeLevel.size() <= 50 &&
+        data.date is string && data.date.size() >= 4 && data.date.size() <= 20 &&
+        data.status is string && (
+          data.status == 'مستقرة' ||
+          data.status == 'عاجلة' ||
+          data.status == 'قيد المتابعة'
+        ) &&
+        isValidDomainScore(data.domainPlanning) &&
+        isValidDomainScore(data.domainTools) &&
+        isValidDomainScore(data.domainFeedback) &&
+        isValidDomainScore(data.domainAchievement) &&
+        data.overallScore is number && data.overallScore >= 0 && data.overallScore <= 100 &&
+        data.strengths is string && data.strengths.size() <= 1000 &&
+        data.notes is string && data.notes.size() >= 2 && data.notes.size() <= 1500 &&
+        data.followUpDate is string && data.followUpDate.size() <= 20 &&
+        data.followUpOutcome is string && data.followUpOutcome.size() <= 1000;
+    }
+
+    match /test/connection {
+      allow get: if true;
+    }
+
+    match /staff/{staffId} {
+      allow get: if isValidId(staffId);
+      allow list: if resource.data.id is string && resource.data.id.size() <= 64;
+      allow create: if isValidId(staffId) && isValidStaff(incoming()) && incoming().id == staffId;
+      allow update: if isValidId(staffId) && isValidStaff(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'dept', 'role', 'specialty', 'targetVisits']);
+      allow delete: if isValidId(staffId);
+    }
+
+    match /visits/{visitId} {
+      allow get: if isValidId(visitId);
+      allow list: if resource.data.id is string && resource.data.id.size() <= 64;
+      allow create: if isValidId(visitId) && isValidVisit(incoming()) && incoming().id == visitId;
+      allow update: if isValidId(visitId) && isValidVisit(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'specialistId', 'specialist', 'dept', 'specialty',
+          'school', 'wilayat', 'teacher', 'visitType', 'gradeLevel',
+          'date', 'status', 'domainPlanning', 'domainTools',
+          'domainFeedback', 'domainAchievement', 'overallScore',
+          'strengths', 'notes', 'followUpDate', 'followUpOutcome'
+        ]);
+      allow delete: if isValidId(visitId);
+    }
+  }
+}
